@@ -6,10 +6,19 @@ classdescription=бакалавърски курс към програмата "
 instructions=Аз съм  експериментален виртуален асистент-преподавател в курса "Евристични методи и управленски решения". Аз съм трениран с фиксиран брой материали за курса. Като цяло казвам истината, но като голям езиков модел е възможно да халюцинирам. Колкото по-точен е въпросът ви, толкова по-добър отговор ще получите. Можете да ми задавате въпроси на език по ваш избор. Ако „възникне грешка при обработката“, задайте въпроса си отново: сървърите, които използваме за обработка на тези отговори, също са в бета версия.
 num_chunks=8
 filedirectory=documents
-embedding_method=sentence-transformers
-sentence_transformer_model=sentence-transformers/all-MiniLM-L6-v2
-# or for OpenAI:
-# embedding_method=openai
-# openai_embedding_model=text-embedding-ada-002
-# max_tokens_per_batch=250000
+embedding_method=openai
+openai_embedding_model=text-embedding-ada-002
+chat_model=gpt-4o-mini
+# The first reliability pass supports OpenAI embeddings only.
+max_tokens_per_batch=100000
+# Only used after an actual OpenAI RateLimitError; normal batches do not sleep.
+embedding_rate_limit_sleep_seconds=0
+retrieval_fetch_multiplier=3
+lexical_rerank=true
+hybrid_retrieval=true
+rrf_k=60
+max_chunks_per_source=2
+minimum_hybrid_retrieval_confidence=0.025
+minimum_lexical_retrieval_confidence=0.20
+minimum_vector_retrieval_confidence=0.20
 

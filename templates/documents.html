@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Teaching Assistant Documents</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <div class="container setup-container">
+    <div class="setup-header">
+      <h1>Documents</h1>
+      <div class="header-actions">
+        <a href="{{ url_for('index') }}">Chat</a>
+        <a href="{{ url_for('setup') }}">Setup</a>
+      </div>
+    </div>
+
+    <div class="health-summary health-{{ 'ready' if index_status.status == 'ready' else 'incomplete' }}">
+      Index status: {{ index_status.status }}
+      <p>{{ index_status.message }}</p>
+    </div>
+
+    {% if index_status.stale_reasons %}
+      <div class="health-check health-incomplete">
+        <strong>Stale index details</strong>
+        <ul class="plain-list">
+          {% for reason in index_status.stale_reasons %}
+            <li>{{ reason }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <section class="dashboard-section">
+      <h2>Input Documents</h2>
+      {% if index_status.documents %}
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Path</th>
+                <th>Status</th>
+                <th>Size</th>
+                <th>Modified</th>
+                <th>SHA-256</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for document in index_status.documents %}
+                <tr>
+                  <td>{{ document.path }}</td>
+                  <td>{{ 'supported' if document.supported else 'unsupported' }}</td>
+                  <td>{{ document.size_bytes }} bytes</td>
+                  <td>{{ document.modified_at }}</td>
+                  <td><code>{{ document.sha256_short }}</code></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="setup-note">No local document files found.</p>
+      {% endif %}
+    </section>
+
+    <section class="dashboard-section">
+      <h2>Generated Artifacts</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Path</th>
+              <th>Status</th>
+              <th>Size</th>
+              <th>Modified</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for artifact in index_status.artifacts %}
+              <tr>
+                <td>{{ artifact.name }}</td>
+                <td>{{ artifact.path }}</td>
+                <td>{{ 'present' if artifact.exists else 'missing' }}</td>
+                <td>{{ artifact.size_bytes }} bytes</td>
+                <td>{{ artifact.modified_at or '-' }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    {% if index_status.report %}
+      <section class="dashboard-section">
+        <h2>Index Report</h2>
+        <dl class="report-grid">
+          <dt>Created</dt>
+          <dd>{{ index_status.report.created_at }}</dd>
+          <dt>Embedding model</dt>
+          <dd>{{ index_status.report.embedding_model }}</dd>
+          <dt>Source documents</dt>
+          <dd>{{ index_status.report.source_document_count }}</dd>
+          <dt>Chunks</dt>
+          <dd>{{ index_status.report.chunk_count }}</dd>
+          <dt>Embeddings</dt>
+          <dd>{{ index_status.report.embedding_count }}</dd>
+          <dt>FAISS vectors</dt>
+          <dd>{{ index_status.report.faiss_vector_count }}</dd>
+        </dl>
+      </section>
+    {% endif %}
+
+    <section class="dashboard-section">
+      <h2>Rebuild Commands</h2>
+      <pre class="command-block">python scripts/prepare_documents.py
+python scripts/embed_documents.py
+python scripts/create_final_data.py</pre>
+    </section>
+  </div>
+</body>
+</html>

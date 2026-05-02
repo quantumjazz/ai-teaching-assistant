@@ -7,12 +7,20 @@
 </head>
 <body>
   <div class="container">
-    <h1>AI Teaching Assistant Chat</h1>
+    <div class="app-header">
+      <h1>AI Teaching Assistant Chat</h1>
+      <div class="header-actions">
+        <span id="session-status">New chat</span>
+        <button id="new-chat-button" type="button">New chat</button>
+        <a href="{{ url_for('documents_page') }}">Documents</a>
+        <a href="{{ url_for('setup') }}">Setup</a>
+      </div>
+    </div>
     <div id="response"></div>
     <form id="chat-form" action="javascript:void(0)">
       <label for="query" style="display: none;">Enter your query:</label>
-      <textarea id="query" rows="5" placeholder="Type your question here..."></textarea>
-      <button type="submit">Submit</button>
+      <textarea id="query" rows="5" placeholder="Type your question here... Cmd/Ctrl+Enter to send."></textarea>
+      <button id="submit-button" type="submit">Submit</button>
     </form>
   </div>
 

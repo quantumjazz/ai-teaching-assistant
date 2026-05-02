@@ -1,0 +1,22 @@
+[
+  {
+    "id": "grading_policy",
+    "question": "How is the final grade determined?",
+    "expected_sources": ["syllabus"],
+    "expected_terms": ["grade"],
+    "max_duplicate_sources": 1
+  },
+  {
+    "id": "office_hours",
+    "question": "When can students ask questions outside class?",
+    "expected_sources": ["syllabus"],
+    "expected_terms": ["office"]
+  },
+  {
+    "id": "unanswerable_external_policy",
+    "question": "What is the refund policy for a different university?",
+    "expected_no_answer": true,
+    "expected_sources": [],
+    "expected_terms": []
+  }
+]

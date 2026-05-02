@@ -10,7 +10,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100dvh;
 }
 
 .container {
@@ -28,11 +28,54 @@ body {
   position: relative;
 }
 
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  width: 100%;
+  margin-bottom: 1.5em;
+}
+
+.app-header h1,
 h1 {
   font-size: 2.5em;
   color: #333;
   text-align: center;
-  margin-bottom: 1.5em;
+}
+
+.app-header h1 {
+  margin-bottom: 0;
+}
+
+.app-header a,
+.setup-header a {
+  color: #0078d4;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+}
+
+#session-status {
+  color: #555;
+  font-size: 0.95em;
+}
+
+#new-chat-button {
+  width: auto;
+  margin-top: 0;
+  padding: 8px 12px;
+  font-size: 0.95em;
+}
+
+.app-header a:hover,
+.setup-header a:hover {
+  text-decoration: underline;
 }
 
 #response {
@@ -49,6 +92,7 @@ h1 {
 
 .chat-bubble {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
   margin-bottom: 1em;
   max-width: 70%;
@@ -56,10 +100,13 @@ h1 {
 
 .chat-bubble.ai {
   justify-content: flex-start;
+  margin-right: auto;
 }
 
 .chat-bubble.user {
+  align-items: flex-end;
   justify-content: flex-end;
+  margin-left: auto;
 }
 
 .chat-bubble .message {
@@ -68,6 +115,7 @@ h1 {
   font-size: 1.2em;
   background-color: #f0f0f0;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  white-space: pre-wrap;
 }
 
 .chat-bubble.ai .message {
@@ -77,6 +125,31 @@ h1 {
 .chat-bubble.user .message {
   background-color: #0078d4;
   color: white;
+}
+
+.sources {
+  margin-top: 0.4em;
+  color: #555;
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+
+.sources summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.sources ul {
+  margin-top: 0.4em;
+  padding-left: 1.2em;
+}
+
+.sources li {
+  margin-bottom: 0.5em;
+}
+
+.sources p {
+  margin-top: 0.2em;
 }
 
 textarea {
@@ -107,9 +180,155 @@ button {
   font-size: 1.2em;
   margin-top: 1em;
   transition: background-color 0.3s;
+}
+
+#submit-button {
   width: 100%;
 }
 
 button:hover {
   background-color: #45a049;
+}
+
+button:disabled {
+  background-color: #8abf8c;
+  cursor: wait;
+}
+
+.setup-container {
+  justify-content: flex-start;
+  align-items: stretch;
+  overflow-y: auto;
+}
+
+.setup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1em;
+  margin-bottom: 1em;
+}
+
+.setup-header h1 {
+  margin-bottom: 0;
+}
+
+.health-summary,
+.health-check {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1em;
+  margin-bottom: 0.75em;
+}
+
+.health-check {
+  background: #fff;
+}
+
+.health-check span {
+  float: right;
+  font-weight: 600;
+}
+
+.health-check p {
+  clear: both;
+  margin-top: 0.6em;
+}
+
+.health-ready {
+  border-color: #9acc9d;
+  background: #eef8ef;
+}
+
+.health-incomplete {
+  border-color: #d9bb68;
+  background: #fff8e6;
+}
+
+.health-error {
+  border-color: #d48383;
+  background: #fff0f0;
+}
+
+.setup-note {
+  color: #555;
+  line-height: 1.5;
+}
+
+.dashboard-section {
+  margin-top: 1.25em;
+}
+
+.dashboard-section h2 {
+  color: #333;
+  font-size: 1.25em;
+  margin-bottom: 0.75em;
+}
+
+.table-wrap {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+th,
+td {
+  border-bottom: 1px solid #eee;
+  padding: 0.75em;
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+th {
+  background: #f7f7f7;
+  color: #333;
+  font-weight: 600;
+}
+
+td code {
+  background: #f0f2f5;
+  border-radius: 4px;
+  padding: 0.15em 0.3em;
+}
+
+.plain-list {
+  margin-top: 0.75em;
+  padding-left: 1.25em;
+  line-height: 1.5;
+}
+
+.report-grid {
+  display: grid;
+  grid-template-columns: minmax(160px, 220px) 1fr;
+  gap: 0.5em 1em;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1em;
+  background: #fff;
+}
+
+.report-grid dt {
+  color: #555;
+  font-weight: 600;
+}
+
+.report-grid dd {
+  color: #222;
+}
+
+.command-block {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #1f2933;
+  color: #f5f7fa;
+  padding: 1em;
+  overflow-x: auto;
+  line-height: 1.5;
 }

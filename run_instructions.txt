@@ -1,52 +1,171 @@
 Project Setup & Execution Guide
 ===============================
 
-Go to the project directory. All text materials must be in "Documents" folder. 
+This project is configured for local use on an Ubuntu LTS laptop.
 
 1. Create and activate a virtual environment
 --------------------------------------------
 
-Create the environment:
-
 python3 -m venv venv
-
-
-Activate the environment:
-
 source venv/bin/activate
 
 
 2. Install dependencies
 -----------------------
 
+pip install --upgrade pip
 pip install -r requirements.txt
 
 
+3. Configure OpenAI
+-------------------
 
-3. Run the pipeline in order
+Create a local .env file in the project directory:
+
+OPENAI_API_KEY=your_api_key_here
+FLASK_SECRET_KEY=replace_with_a_long_random_secret
+# Set SESSION_COOKIE_SECURE=true only when serving the app over HTTPS.
+
+You can copy .env.example to .env first if useful:
+
+cp .env.example .env
+
+Do not commit .env.
+
+
+4. Add course documents
+-----------------------
+
+Place instructor/course materials in the documents/ directory. Supported source
+formats are PDF, DOCX, and TXT.
+
+
+5. Run the indexing pipeline
 ----------------------------
 
-Step 1: Prepare documents
-
 python scripts/prepare_documents.py
-
-
-Step 2: Embed document chunks
-
 python scripts/embed_documents.py
-
-
-Step 3: Create final dataset
-
 python scripts/create_final_data.py
 
+If you created the virtual environment with the included Makefile, you can also
+run:
 
-Step 4: Test the RAG pipeline manually
+make index
 
-python src/main.py
+This creates generated files under data/. Those generated files are ignored by
+Git because they are local course artifacts. Rerun the full indexing pipeline
+after pulling changes that affect chunking or retrieval settings.
 
 
-Step 5: Launch the web app
+6. Start the web app
+--------------------
 
-python src/app.py
+python -m src.app
 
+Or:
+
+make run
+
+Open http://127.0.0.1:5000 in a browser.
+
+Open http://127.0.0.1:5000/setup to view local setup diagnostics. The same
+status is available as JSON at http://127.0.0.1:5000/api/health.
+
+Open http://127.0.0.1:5000/documents to view document inventory, generated
+artifact status, and stale-index detection.
+
+
+7. Manual smoke test
+--------------------
+
+Ask a question that should be answerable from the course documents. If the app
+says the course knowledge base is not ready, rerun step 5 and confirm that
+data/faiss_index.bin and data/faiss_metadata.json exist.
+
+Successful answers show source filenames and chunk indexes under the assistant
+message. When the indexed source provides them, the UI also shows page and
+section metadata.
+
+Follow-up questions use the recent browser chat context. Use New chat to clear
+that context. To check a student answer against the most recent course question,
+start the message with a:. Answer-check messages do not record a new chat turn,
+so repeated checks still refer to the most recent course question.
+
+The assistant is instructed to answer in the student's latest question language.
+The built-in no-answer and answer-check fallback messages match Bulgarian or
+English input without adding a separate language setting.
+
+Successful indexing writes data/index_report.json. If any pipeline command
+prints Error: and exits, fix the reported document, CSV, embedding, or data
+artifact issue before continuing.
+
+The index report stores local input document fingerprints. If a supported
+document is added, removed, or changed after indexing, the documents page and
+health checks report the index as stale until you rerun the indexing pipeline.
+
+Document chunking preserves paragraph boundaries where possible. Chunk bodies are
+embedded without display metadata; PDF page numbers, section titles, and
+character offsets are stored separately and added to prompts at retrieval time.
+Long blocks are split with overlap.
+
+Retrieval uses a hybrid local pipeline by default: FAISS vector candidates,
+BM25 lexical candidates, reciprocal rank fusion, source diversity filtering, and
+mode-specific minimum-confidence gates. If hybrid_retrieval=true and
+lexical_rerank=true, lexical overlap is applied as a secondary rerank after
+fusion while the hybrid RRF score remains the primary rank. If retrieval
+confidence is too low, the assistant returns a clear "I don't know" answer
+instead of guessing.
+
+
+8. Run automated checks
+-----------------------
+
+python -m unittest discover -s tests -v
+
+Or:
+
+make test
+
+To remove generated local index artifacts while keeping the tracked data
+directory placeholder:
+
+make clean-data
+
+
+9. Run retrieval evaluation
+---------------------------
+
+Copy the example retrieval cases and edit them for the course:
+
+cp eval/rag_cases.example.json eval/rag_cases.json
+
+Then run:
+
+make evaluate
+
+The evaluation checks whether retrieval returns expected source filenames and
+terms before any answer generation is judged. Cases may also set
+expected_no_answer=true and max_duplicate_sources to evaluate weak-retrieval and
+duplicate-source behavior.
+
+
+Notes
+-----
+
+- The active Flask entrypoint is src.app:app.
+- The active chat service is src/main.py.
+- OpenAI embeddings are the only supported embedding path in this reliability
+  pass.
+- Retrieval fetches a wider candidate set and applies a lightweight lexical
+  rerank before building context when hybrid_retrieval=false.
+- By default, hybrid_retrieval=true merges FAISS and BM25 results with reciprocal
+  rank fusion.
+- Follow-up and answer-check behavior uses short browser-session context stored
+  in memory by the local Flask process.
+- Set a stable FLASK_SECRET_KEY for any real deployment. Without one, every app
+  restart invalidates existing browser chat sessions.
+- Flask session cookies are HttpOnly and SameSite=Strict by default. Set
+  SESSION_COOKIE_SECURE=true only behind HTTPS.
+- The included Docker image runs one gunicorn worker because conversation state
+  is in-process. Use shared storage before deploying multiple workers or
+  replicas.

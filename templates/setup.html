@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Teaching Assistant Setup</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <div class="container setup-container">
+    <div class="setup-header">
+      <h1>Setup Status</h1>
+      <div class="header-actions">
+        <a href="{{ url_for('index') }}">Chat</a>
+        <a href="{{ url_for('documents_page') }}">Documents</a>
+      </div>
+    </div>
+
+    <div class="health-summary health-{{ report.status }}">
+      Overall status: {{ report.status }}
+    </div>
+
+    <div class="health-checks">
+      {% for check in report.checks %}
+        <div class="health-check health-{{ check.status }}">
+          <strong>{{ check.name }}</strong>
+          <span>{{ check.status }}</span>
+          <p>{{ check.message }}</p>
+        </div>
+      {% endfor %}
+    </div>
+
+    <p class="setup-note">
+      Follow README.md or run_instructions.txt to add documents, configure OpenAI,
+      and rebuild the local knowledge base.
+    </p>
+  </div>
+</body>
+</html>
