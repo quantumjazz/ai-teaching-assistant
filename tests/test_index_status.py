@@ -21,6 +21,15 @@ class IndexStatusTests(unittest.TestCase):
         self.assertEqual(status.status, "ready")
         self.assertEqual(status.message, "The local index matches the current supported documents.")
 
+    def test_index_status_can_use_course_root_env(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            self._write_indexed_project(root)
+
+            status = get_index_status(env={"COURSE_ROOT": str(root)})
+
+        self.assertEqual(status.status, "ready")
+
     def test_index_status_detects_changed_document(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)

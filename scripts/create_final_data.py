@@ -10,8 +10,9 @@ if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
 from src.clients import load_faiss_module, load_numpy_module
+from src.env_utils import load_dotenv_if_available
 from src.index_status import validate_index_report
-from src.settings import read_settings
+from src.settings import read_settings, runtime_paths
 
 
 class IngestionError(Exception):
@@ -229,13 +230,15 @@ def write_index_report(report_path, report):
 
 
 def main():
-    base_dir = BASE_DIR
-    data_dir = os.path.join(base_dir, "data")
-    settings = read_settings(os.path.join(base_dir, "settings.txt"))
-    embedded_data_path = os.path.join(data_dir, "embedded_data.pkl")
-    faiss_index_path = os.path.join(data_dir, "faiss_index.bin")
-    metadata_path = os.path.join(data_dir, "faiss_metadata.json")
-    report_path = os.path.join(data_dir, "index_report.json")
+    load_dotenv_if_available()
+    paths = runtime_paths()
+    load_dotenv_if_available(paths.env_path)
+    data_dir = str(paths.data_dir)
+    settings = read_settings(paths.settings_path)
+    embedded_data_path = str(paths.data_dir / "embedded_data.pkl")
+    faiss_index_path = str(paths.data_dir / "faiss_index.bin")
+    metadata_path = str(paths.data_dir / "faiss_metadata.json")
+    report_path = str(paths.data_dir / "index_report.json")
 
     try:
         if not os.path.exists(embedded_data_path):

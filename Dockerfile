@@ -28,4 +28,4 @@ USER appuser
 EXPOSE 8080
 
 # Run the app using one worker because chat context is process-local.
-CMD ["gunicorn", "--workers", "1", "--bind", "0.0.0.0:8080", "src.app:app"]
+CMD ["sh", "scripts/start_web.sh"]

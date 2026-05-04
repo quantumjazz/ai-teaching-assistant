@@ -39,6 +39,11 @@ Do not commit .env.
 Place instructor/course materials in the documents/ directory. Supported source
 formats are PDF, DOCX, and TXT.
 
+Subfolders under documents/ are scanned recursively. If subfolders represent
+different courses, run a separate app service per course instead of merging them
+into one documents/ tree. For laptop deployments, set COURSE_ROOT to a directory
+that contains that course's settings.txt, .env, documents/, and data/.
+
 
 5. Run the indexing pipeline
 ----------------------------

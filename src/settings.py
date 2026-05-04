@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -6,8 +7,44 @@ from .errors import ConfigurationError
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-SETTINGS_PATH = PROJECT_ROOT / "settings.txt"
-DATA_DIR = PROJECT_ROOT / "data"
+
+
+@dataclass(frozen=True)
+class RuntimePaths:
+    course_root: Path
+    settings_path: Path
+    documents_dir: Path
+    data_dir: Path
+    env_path: Path
+
+
+def runtime_paths(course_root=None, env=None):
+    env = os.environ if env is None else env
+    if course_root is None:
+        course_root = _configured_path(env, "COURSE_ROOT", PROJECT_ROOT)
+    else:
+        course_root = Path(course_root)
+    return RuntimePaths(
+        course_root=course_root,
+        settings_path=_configured_path(env, "SETTINGS_PATH", course_root / "settings.txt"),
+        documents_dir=_configured_path(env, "DOCUMENTS_DIR", course_root / "documents"),
+        data_dir=_configured_path(env, "DATA_DIR", course_root / "data"),
+        env_path=_configured_path(env, "ENV_PATH", course_root / ".env"),
+    )
+
+
+def _configured_path(env, name, default):
+    raw_value = env.get(name)
+    if raw_value is None or not str(raw_value).strip():
+        return Path(default)
+    return Path(str(raw_value).strip()).expanduser()
+
+
+_DEFAULT_RUNTIME_PATHS = runtime_paths()
+SETTINGS_PATH = _DEFAULT_RUNTIME_PATHS.settings_path
+DOCUMENTS_DIR = _DEFAULT_RUNTIME_PATHS.documents_dir
+DATA_DIR = _DEFAULT_RUNTIME_PATHS.data_dir
+ENV_PATH = _DEFAULT_RUNTIME_PATHS.env_path
 
 DEFAULT_CHAT_MODEL = "gpt-4o-mini"
 DEFAULT_EMBEDDING_MODEL = "text-embedding-ada-002"

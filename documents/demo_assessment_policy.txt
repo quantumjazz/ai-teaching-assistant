@@ -1,0 +1,13 @@
+Assessment Policy
+
+This synthetic demo document defines the grading policy for the hosted AI teaching assistant demo. The final grade combines four components: individual case analysis, group facilitation, final reflection, and participation.
+
+Individual case analysis is worth 40 percent of the final grade. Students receive a short business case, identify the decision problem, list two or three feasible alternatives, choose a heuristic method, and justify a recommendation with evidence from the case.
+
+Group facilitation is worth 30 percent of the final grade. Teams lead a workshop using one method from the course, such as Delphi, scenario analysis, decision trees, or weighted scoring. A strong facilitation session makes assumptions visible and records dissenting views.
+
+The final reflection is worth 20 percent of the final grade. Students explain where a heuristic helped, where it could mislead, and what information would be needed before turning the recommendation into an operational plan.
+
+Participation is worth 10 percent of the final grade. Participation credit comes from concise preparation notes, useful questions during workshops, and respectful critique of other teams' assumptions.
+
+Late work can receive partial credit for up to seven calendar days after the deadline. After seven days, the student must request an instructor exception and explain the blocker.

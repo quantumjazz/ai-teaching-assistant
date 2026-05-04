@@ -11,6 +11,8 @@ if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
 from src.index_status import fingerprint_document
+from src.env_utils import load_dotenv_if_available
+from src.settings import runtime_paths
 
 
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".txt"}
@@ -447,13 +449,20 @@ def write_chunks_csv(chunks, output_csv_path):
 
 
 def main():
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    documents_dir = os.path.join(base_dir, "documents")
-    output_csv_path = os.path.join(base_dir, "data", "chopped_text.csv")
+    load_dotenv_if_available()
+    paths = runtime_paths()
+    load_dotenv_if_available(paths.env_path)
+    documents_dir = str(paths.documents_dir)
+    output_csv_path = str(paths.data_dir / "chopped_text.csv")
 
     try:
         files = gather_document_files(documents_dir)
-        chunks = prepare_chunks(files, chunk_size=200, overlap=100, project_root=base_dir)
+        chunks = prepare_chunks(
+            files,
+            chunk_size=200,
+            overlap=100,
+            project_root=str(paths.course_root),
+        )
         write_chunks_csv(chunks, output_csv_path)
     except Exception as exc:
         print(f"Error: {exc}", file=sys.stderr)

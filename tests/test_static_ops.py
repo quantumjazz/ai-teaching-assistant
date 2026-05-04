@@ -27,10 +27,15 @@ class StaticAndOpsTests(unittest.TestCase):
 
     def test_dockerfile_is_hardened_for_local_production_path(self):
         dockerfile = (PROJECT_ROOT / "Dockerfile").read_text(encoding="utf-8")
+        start_script = (PROJECT_ROOT / "scripts" / "start_web.sh").read_text(
+            encoding="utf-8"
+        )
 
         self.assertIn("--no-install-recommends", dockerfile)
         self.assertIn("rm -rf /var/lib/apt/lists/*", dockerfile)
-        self.assertIn("--workers\", \"1", dockerfile)
+        self.assertIn("scripts/start_web.sh", dockerfile)
+        self.assertIn("--workers 1", start_script)
+        self.assertIn("${PORT:-8080}", start_script)
         self.assertIn("USER appuser", dockerfile)
 
     def test_dockerignore_and_make_clean_data_exist(self):
@@ -40,7 +45,16 @@ class StaticAndOpsTests(unittest.TestCase):
         self.assertIn(".env", dockerignore)
         self.assertIn("data/*", dockerignore)
         self.assertIn("documents/*", dockerignore)
+        self.assertIn("!documents/demo_*.txt", dockerignore)
         self.assertIn("clean-data:", makefile)
+
+    def test_render_blueprint_declares_demo_web_service(self):
+        render_yaml = (PROJECT_ROOT / "render.yaml").read_text(encoding="utf-8")
+
+        self.assertIn("runtime: docker", render_yaml)
+        self.assertIn("healthCheckPath: /api/health", render_yaml)
+        self.assertIn("OPENAI_API_KEY", render_yaml)
+        self.assertIn("AUTO_INDEX_ON_STARTUP", render_yaml)
 
     def test_dependencies_are_major_pinned(self):
         requirements = (PROJECT_ROOT / "requirements.txt").read_text(encoding="utf-8")

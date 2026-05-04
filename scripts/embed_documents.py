@@ -10,7 +10,7 @@ if BASE_DIR not in sys.path:
 
 from src.clients import load_openai_module
 from src.env_utils import load_dotenv_if_available
-from src.settings import read_settings
+from src.settings import read_settings, runtime_paths
 
 
 class IngestionError(Exception):
@@ -275,14 +275,15 @@ def read_nonnegative_int(raw_value: str, default: int) -> int:
 
 
 def main():
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    data_dir = os.path.join(base_dir, "data")
-    settings = read_settings(os.path.join(base_dir, "settings.txt"))
-    chopped_csv_path = os.path.join(data_dir, "chopped_text.csv")
-    output_pickle_path = os.path.join(data_dir, "embedded_data.pkl")
+    load_dotenv_if_available()
+    paths = runtime_paths()
+    load_dotenv_if_available(paths.env_path)
+    data_dir = str(paths.data_dir)
+    settings = read_settings(paths.settings_path)
+    chopped_csv_path = str(paths.data_dir / "chopped_text.csv")
+    output_pickle_path = str(paths.data_dir / "embedded_data.pkl")
 
     try:
-        load_dotenv_if_available()
         openai_module = load_openai_module()
         openai_module.api_key = os.getenv("OPENAI_API_KEY")
         if not openai_module.api_key:

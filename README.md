@@ -12,6 +12,8 @@ The reliable local path is:
 5. Open the local browser URL and ask a question.
 
 Generated course data and source documents are intentionally ignored by Git.
+The repository does include a tiny synthetic demo corpus in `documents/demo_*.txt`
+so hosted demo deployments can build a public, non-sensitive knowledge base.
 
 ## Local Setup On Ubuntu LTS
 
@@ -88,6 +90,38 @@ Open `http://127.0.0.1:5000/setup` to see a local setup checklist. The same
 diagnostics are available as JSON at `http://127.0.0.1:5000/api/health`.
 Open `http://127.0.0.1:5000/documents` to see local document inventory,
 generated artifact status, and whether the current FAISS index is stale.
+
+For GitHub upload and Ubuntu laptop deployment using the same SSH clone and
+Cloudflare Tunnel pattern as `uni_dashboard`, see
+[`DEPLOYMENT_UBUNTU.md`](DEPLOYMENT_UBUNTU.md).
+
+## Multiple Courses
+
+The ingestion pipeline scans `documents/**`, so subfolders are supported, but
+they are indexed into one knowledge base by default. Use that only when the
+assistant should answer across all included material.
+
+For separate courses, run one app service per course and point each service at a
+different course root:
+
+```text
+COURSE_ROOT=/home/victor/course-data/heuristics
+```
+
+Each `COURSE_ROOT` can contain its own `settings.txt`, `.env`, `documents/`, and
+generated `data/` directory. You can also override individual paths with
+`SETTINGS_PATH`, `DOCUMENTS_DIR`, `DATA_DIR`, and `ENV_PATH`.
+
+## Deploy A Live Demo
+
+The preferred laptop demo path is documented in
+[`DEPLOYMENT_UBUNTU.md`](DEPLOYMENT_UBUNTU.md): push the app to GitHub over SSH,
+clone it on the Ubuntu laptop, run it with systemd, and expose it through
+Cloudflare Tunnel with automatic HTTPS.
+
+The repository also includes `render.yaml` for a Render Docker demo if you want
+a hosted fallback. Render needs `OPENAI_API_KEY`; it generates
+`FLASK_SECRET_KEY` and indexes the tracked demo documents on startup.
 
 ## Run Tests
 

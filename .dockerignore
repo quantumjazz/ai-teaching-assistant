@@ -22,5 +22,6 @@ data/*
 
 documents/*
 !documents/files.txt
+!documents/demo_*.txt
 
 eval/rag_cases.json

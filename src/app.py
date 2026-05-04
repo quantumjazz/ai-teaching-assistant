@@ -5,6 +5,12 @@ from uuid import uuid4
 from flask import Flask, render_template, request, jsonify, session
 
 from .env_utils import env_flag, is_configured_env_value, load_dotenv_if_available
+
+load_dotenv_if_available()
+from .settings import runtime_paths
+
+load_dotenv_if_available(runtime_paths().env_path)
+
 from .health import get_health_report
 from .index_status import get_index_status
 from .main import AssistantError, answer_query_with_sources
@@ -13,7 +19,6 @@ from .sessions import conversation_store
 # Configure Flask to look for templates in the project root's "templates" folder.
 template_dir = os.path.join(os.path.dirname(__file__), '..', 'templates')
 static_dir = os.path.join(os.path.dirname(__file__), '..', 'static')
-load_dotenv_if_available()
 app = Flask(__name__, static_folder=static_dir, template_folder=template_dir)
 secret_key = os.environ.get("FLASK_SECRET_KEY")
 app.secret_key = secret_key if is_configured_env_value(secret_key) else secrets.token_hex(32)

@@ -1,0 +1,17 @@
+[
+  {
+    "query": "How much is the individual case analysis worth?",
+    "expected_source": "demo_assessment_policy.txt",
+    "expected_terms": ["40 percent", "individual case analysis"]
+  },
+  {
+    "query": "When should students use the Delphi method?",
+    "expected_source": "demo_course_overview.txt",
+    "expected_terms": ["experts", "anonymous"]
+  },
+  {
+    "query": "What happens to late work after seven days?",
+    "expected_source": "demo_assessment_policy.txt",
+    "expected_terms": ["seven calendar days", "instructor exception"]
+  }
+]

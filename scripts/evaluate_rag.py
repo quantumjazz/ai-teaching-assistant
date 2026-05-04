@@ -3,12 +3,16 @@ import json
 import sys
 
 from src.clients import configure_openai
+from src.env_utils import load_dotenv_if_available
 from src.evaluation import load_eval_cases, score_retrieval, summarize_results
 from src.retrieval import get_context_from_query, load_faiss_resources
-from src.settings import DATA_DIR, SETTINGS_PATH, load_course_settings
+from src.settings import load_course_settings, runtime_paths
 
 
-def evaluate_cases(cases_path, settings_path=SETTINGS_PATH, data_dir=DATA_DIR):
+def evaluate_cases(cases_path, settings_path=None, data_dir=None):
+    paths = runtime_paths()
+    settings_path = settings_path or paths.settings_path
+    data_dir = data_dir or paths.data_dir
     settings = load_course_settings(settings_path)
     index, metadata = load_faiss_resources(data_dir=data_dir)
     openai_module = configure_openai()
@@ -36,6 +40,8 @@ def main():
     args = parser.parse_args()
 
     try:
+        load_dotenv_if_available()
+        load_dotenv_if_available(runtime_paths().env_path)
         summary = evaluate_cases(args.cases)
     except Exception as exc:
         print(f"Error: {exc}", file=sys.stderr)

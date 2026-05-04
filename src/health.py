@@ -12,11 +12,15 @@ from .env_utils import (
     read_env_file,
 )
 from .index_status import get_index_status, validate_index_report
-from .settings import DATA_DIR, PROJECT_ROOT, SETTINGS_PATH, load_course_settings
-
-
-DOCUMENTS_DIR = PROJECT_ROOT / "documents"
-ENV_PATH = PROJECT_ROOT / ".env"
+from .settings import (
+    DATA_DIR,
+    DOCUMENTS_DIR,
+    ENV_PATH,
+    PROJECT_ROOT,
+    SETTINGS_PATH,
+    load_course_settings,
+    runtime_paths,
+)
 SUPPORTED_DOCUMENT_EXTENSIONS = {".pdf", ".docx", ".txt"}
 PLACEHOLDER_DOCUMENT_NAMES = {"files.txt"}
 
@@ -47,30 +51,26 @@ class HealthReport:
         }
 
 
-def get_health_report(project_root=PROJECT_ROOT, env=None):
-    project_root = Path(project_root)
+def get_health_report(project_root=None, env=None):
     env = os.environ if env is None else env
-    settings_path = project_root / "settings.txt"
-    data_dir = project_root / "data"
-    documents_dir = project_root / "documents"
-    env_path = project_root / ".env"
+    paths = runtime_paths(project_root, env=env)
 
     metadata_records = None
     checks = [
-        check_settings(settings_path),
-        check_openai_key(env_path, env),
-        check_flask_secret(env_path, env),
-        check_documents(documents_dir),
-        check_chopped_csv(data_dir / "chopped_text.csv"),
-        check_embedded_data(data_dir / "embedded_data.pkl"),
-        check_file_present("faiss_index", data_dir / "faiss_index.bin"),
+        check_settings(paths.settings_path),
+        check_openai_key(paths.env_path, env),
+        check_flask_secret(paths.env_path, env),
+        check_documents(paths.documents_dir),
+        check_chopped_csv(paths.data_dir / "chopped_text.csv"),
+        check_embedded_data(paths.data_dir / "embedded_data.pkl"),
+        check_file_present("faiss_index", paths.data_dir / "faiss_index.bin"),
     ]
 
-    metadata_check, metadata_records = check_metadata(data_dir / "faiss_metadata.json")
+    metadata_check, metadata_records = check_metadata(paths.data_dir / "faiss_metadata.json")
     checks.append(metadata_check)
     checks.append(check_metadata_count(metadata_records))
-    checks.append(check_index_report(data_dir / "index_report.json"))
-    checks.append(check_index_freshness(project_root))
+    checks.append(check_index_report(paths.data_dir / "index_report.json"))
+    checks.append(check_index_freshness(paths.course_root, env=env))
 
     return HealthReport(status=_overall_status(checks), checks=checks)
 
@@ -389,8 +389,8 @@ def check_index_report(report_path):
     return HealthCheck("index_report", "ready", "data/index_report.json is valid.")
 
 
-def check_index_freshness(project_root=PROJECT_ROOT):
-    index_status = get_index_status(project_root)
+def check_index_freshness(project_root=None, env=None):
+    index_status = get_index_status(project_root, env=env)
     if index_status.status == "ready":
         return HealthCheck("index_freshness", "ready", index_status.message)
     if index_status.status == "error":

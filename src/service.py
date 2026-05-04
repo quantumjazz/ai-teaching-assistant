@@ -12,7 +12,7 @@ from .prompts import (
     no_answer_message,
 )
 from .retrieval import Source, get_context_from_query, load_faiss_resources
-from .settings import DATA_DIR, SETTINGS_PATH, load_course_settings
+from .settings import load_course_settings, runtime_paths
 
 
 ANSWER_CHECK_DISABLED_MESSAGE = answer_check_disabled_message()
@@ -32,8 +32,8 @@ class AssistantResponse:
 
 def answer_query(
     user_input,
-    settings_path=SETTINGS_PATH,
-    data_dir=DATA_DIR,
+    settings_path=None,
+    data_dir=None,
     openai_module=None,
     faiss_module=None,
     verify=True,
@@ -52,8 +52,8 @@ def answer_query(
 
 def answer_query_with_sources(
     user_input,
-    settings_path=SETTINGS_PATH,
-    data_dir=DATA_DIR,
+    settings_path=None,
+    data_dir=None,
     openai_module=None,
     faiss_module=None,
     verify=True,
@@ -62,6 +62,10 @@ def answer_query_with_sources(
     user_input = user_input.strip()
     if not user_input:
         raise UserInputError("No query provided")
+
+    paths = runtime_paths()
+    settings_path = settings_path or paths.settings_path
+    data_dir = data_dir or paths.data_dir
 
     if user_input.lower().startswith("a:"):
         return _answer_check(
@@ -160,12 +164,13 @@ def answer_query_with_sources(
     return response
 
 
-def _answer_check(user_answer, settings_path=SETTINGS_PATH, openai_module=None, conversation_state=None):
+def _answer_check(user_answer, settings_path=None, openai_module=None, conversation_state=None):
     if not conversation_state or not conversation_state.latest():
         return AssistantResponse(answer_check_disabled_message(user_answer), [])
     if not user_answer:
         return AssistantResponse(answer_check_missing_answer_message(user_answer), [])
 
+    settings_path = settings_path or runtime_paths().settings_path
     settings = load_course_settings(settings_path)
     openai_module = configure_openai(openai_module)
     previous = conversation_state.latest()

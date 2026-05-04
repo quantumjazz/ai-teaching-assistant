@@ -1,0 +1,11 @@
+Course Overview
+
+This synthetic demo document describes a short course on heuristic methods and managerial decisions. It is safe to publish with the app and exists only so a hosted demo has course material to index. The course teaches students to frame messy business situations, compare imperfect options, and explain the reasoning behind a recommendation.
+
+Heuristic decision making means using practical rules when complete optimization is too slow, too expensive, or impossible. In the course, students compare satisficing, elimination by aspects, scenario thinking, decision trees, and simple scoring models. A useful heuristic must be explicit enough for classmates to critique and simple enough to apply under time pressure.
+
+The Delphi method is used when a manager needs judgment from several experts without letting the loudest person dominate the discussion. Students run two short Delphi rounds: first they collect independent estimates, then they show the anonymous range of answers and ask participants to revise their reasoning.
+
+Scenario analysis is used to test whether a recommendation survives uncertainty. Each scenario names the driver that changes, the expected business effect, early warning indicators, and a response plan. The course prefers three scenarios: optimistic, base case, and constrained.
+
+The assistant should answer questions from the indexed course materials only. If a question is outside the materials, it should say that the course knowledge base does not contain enough information instead of inventing details.

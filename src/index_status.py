@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 
-from .settings import PROJECT_ROOT
+from .settings import PROJECT_ROOT, runtime_paths
 
 
 SUPPORTED_DOCUMENT_EXTENSIONS = {".pdf", ".docx", ".txt"}
@@ -97,10 +97,10 @@ class IndexStatus:
         }
 
 
-def get_index_status(project_root=PROJECT_ROOT):
-    project_root = Path(project_root)
-    documents = list_document_inventory(project_root)
-    artifacts = list_artifact_status(project_root)
+def get_index_status(project_root=None, env=None):
+    paths = runtime_paths(project_root, env=env)
+    documents = list_document_inventory(paths.course_root, documents_dir=paths.documents_dir)
+    artifacts = list_artifact_status(paths.data_dir, course_root=paths.course_root)
     supported = supported_documents(documents)
     missing_artifacts = [
         artifact.path for artifact in artifacts if artifact.name != "index_report" and not artifact.exists
@@ -109,7 +109,7 @@ def get_index_status(project_root=PROJECT_ROOT):
     report = None
     stale_reasons = []
     try:
-        report = load_index_report(project_root)
+        report = load_index_report(paths.data_dir)
         if report is not None:
             validate_index_report(report)
     except Exception as exc:
@@ -173,9 +173,9 @@ def get_index_status(project_root=PROJECT_ROOT):
     )
 
 
-def list_document_inventory(project_root=PROJECT_ROOT):
+def list_document_inventory(project_root=PROJECT_ROOT, documents_dir=None):
     project_root = Path(project_root)
-    documents_dir = project_root / "documents"
+    documents_dir = Path(documents_dir) if documents_dir is not None else project_root / "documents"
     if not documents_dir.exists():
         return []
 
@@ -187,8 +187,8 @@ def list_document_inventory(project_root=PROJECT_ROOT):
     return records
 
 
-def list_supported_document_records(project_root=PROJECT_ROOT):
-    return supported_documents(list_document_inventory(project_root))
+def list_supported_document_records(project_root=PROJECT_ROOT, documents_dir=None):
+    return supported_documents(list_document_inventory(project_root, documents_dir=documents_dir))
 
 
 def supported_documents(documents: Iterable[DocumentRecord]):
@@ -216,23 +216,27 @@ def fingerprint_document(file_path, project_root=PROJECT_ROOT):
     )
 
 
-def document_records_for_report(project_root=PROJECT_ROOT):
-    return [record.to_report_dict() for record in list_supported_document_records(project_root)]
+def document_records_for_report(project_root=PROJECT_ROOT, documents_dir=None):
+    return [
+        record.to_report_dict()
+        for record in list_supported_document_records(project_root, documents_dir=documents_dir)
+    ]
 
 
-def list_artifact_status(project_root=PROJECT_ROOT):
-    project_root = Path(project_root)
+def list_artifact_status(data_dir=None, course_root=PROJECT_ROOT):
+    data_dir = Path(data_dir) if data_dir is not None else Path(course_root) / "data"
     records = []
     for name, relative_path in ARTIFACTS:
-        path = project_root / relative_path
+        path = data_dir / Path(relative_path).name
+        label = _relative_posix(path, course_root)
         if not path.exists():
-            records.append(ArtifactRecord(name=name, path=relative_path, exists=False))
+            records.append(ArtifactRecord(name=name, path=label, exists=False))
             continue
         stat = path.stat()
         records.append(
             ArtifactRecord(
                 name=name,
-                path=relative_path,
+                path=label,
                 exists=True,
                 size_bytes=stat.st_size,
                 modified_at=_iso_from_ns(stat.st_mtime_ns),
@@ -242,8 +246,10 @@ def list_artifact_status(project_root=PROJECT_ROOT):
     return records
 
 
-def load_index_report(project_root=PROJECT_ROOT):
-    report_path = Path(project_root) / "data" / "index_report.json"
+def load_index_report(data_dir=None):
+    if data_dir is None:
+        data_dir = Path(PROJECT_ROOT) / "data"
+    report_path = Path(data_dir) / "index_report.json"
     if not report_path.exists():
         return None
     with open(report_path, "r", encoding="utf-8") as f:
