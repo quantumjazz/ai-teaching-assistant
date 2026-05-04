@@ -212,6 +212,68 @@ class RetrievalTests(unittest.TestCase):
         self.assertEqual(retrieved.sources[0].vector_rank, 1)
         self.assertEqual(retrieved.sources[0].lexical_rank, 0)
 
+    def test_cyrillic_hybrid_query_can_use_strong_vector_hit_without_lexical_match(self):
+        retrieval_module.clear_retrieval_cache()
+        settings = CourseSettings(
+            num_chunks=2,
+            hybrid_retrieval=True,
+            lexical_rerank=True,
+            minimum_hybrid_retrieval_confidence=0.025,
+            minimum_vector_retrieval_confidence=0.20,
+        )
+        metadata = [
+            {
+                "filename": "property.txt",
+                "chunk_index": 0,
+                "chunk_text": "Residual decision authority under incomplete contracts.",
+            },
+            {"filename": "overview.txt", "chunk_index": 1, "chunk_text": "General overview."},
+        ]
+
+        with patch("src.retrieval.load_numpy_module", return_value=FakeNumpy()):
+            retrieved = get_context_from_query(
+                "Какво е това?\n\nEnglish retrieval query: agency theory",
+                index=FakeIndex(),
+                metadata=metadata,
+                settings=settings,
+                openai_module=FakeOpenAI(),
+            )
+
+        self.assertTrue(retrieved.answerable)
+        self.assertEqual(retrieved.sources[0].filename, "property.txt")
+        self.assertIsNone(retrieved.sources[0].lexical_rank)
+        self.assertLess(retrieved.confidence, settings.minimum_hybrid_retrieval_confidence)
+
+    def test_english_hybrid_query_still_requires_hybrid_confidence(self):
+        retrieval_module.clear_retrieval_cache()
+        settings = CourseSettings(
+            num_chunks=2,
+            hybrid_retrieval=True,
+            lexical_rerank=True,
+            minimum_hybrid_retrieval_confidence=0.025,
+            minimum_vector_retrieval_confidence=0.20,
+        )
+        metadata = [
+            {
+                "filename": "property.txt",
+                "chunk_index": 0,
+                "chunk_text": "Residual decision authority under incomplete contracts.",
+            },
+            {"filename": "overview.txt", "chunk_index": 1, "chunk_text": "General overview."},
+        ]
+
+        with patch("src.retrieval.load_numpy_module", return_value=FakeNumpy()):
+            retrieved = get_context_from_query(
+                "agency theory",
+                index=FakeIndex(),
+                metadata=metadata,
+                settings=settings,
+                openai_module=FakeOpenAI(),
+            )
+
+        self.assertFalse(retrieved.answerable)
+        self.assertEqual(retrieved.sources[0].filename, "property.txt")
+
     def test_diversity_limits_repeated_sources_before_filling(self):
         candidates = [
             RetrievalCandidate("A1", Source("a.txt", 0, source_path="documents/a.txt"), 0),

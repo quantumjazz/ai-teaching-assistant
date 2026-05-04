@@ -163,8 +163,7 @@ def get_context_from_query(query, index, metadata, settings, openai_module=None)
         text=_format_context(candidates),
         sources=[candidate.source for candidate in candidates],
         confidence=confidence,
-        answerable=bool(candidates)
-        and confidence >= retrieval_confidence_threshold(settings),
+        answerable=retrieval_answerable(query, candidates, settings),
     )
 
 
@@ -398,6 +397,31 @@ def retrieval_confidence(candidates):
     return 0.0
 
 
+def retrieval_answerable(query, candidates, settings):
+    if not candidates:
+        return False
+
+    if retrieval_confidence(candidates) >= retrieval_confidence_threshold(settings):
+        return True
+
+    top = candidates[0].source
+    if (
+        settings.hybrid_retrieval
+        and _uses_cyrillic(query)
+        and top.vector_rank is not None
+        and vector_confidence(top) > settings.minimum_vector_retrieval_confidence
+    ):
+        return True
+
+    return False
+
+
+def vector_confidence(source):
+    if source.distance is None:
+        return 0.0
+    return 1.0 / (1.0 + max(source.distance, 0.0))
+
+
 def retrieval_confidence_threshold(settings):
     if settings.hybrid_retrieval:
         return settings.minimum_hybrid_retrieval_confidence
@@ -418,6 +442,10 @@ def _tokenize(text):
     """Tokenize Unicode words and ignore tokens shorter than MIN_TOKEN_LENGTH."""
     terms = re.findall(r"\w+", text.lower(), flags=re.UNICODE)
     return [term for term in terms if len(term) >= MIN_TOKEN_LENGTH]
+
+
+def _uses_cyrillic(text):
+    return any("\u0400" <= char <= "\u04ff" for char in text)
 
 
 def _search_k(settings, metadata):
