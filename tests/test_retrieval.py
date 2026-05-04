@@ -244,6 +244,42 @@ class RetrievalTests(unittest.TestCase):
         self.assertIsNone(retrieved.sources[0].lexical_rank)
         self.assertLess(retrieved.confidence, settings.minimum_hybrid_retrieval_confidence)
 
+    def test_cyrillic_hybrid_query_checks_any_selected_vector_hit(self):
+        retrieval_module.clear_retrieval_cache()
+        settings = CourseSettings(
+            num_chunks=2,
+            hybrid_retrieval=True,
+            lexical_rerank=True,
+            minimum_hybrid_retrieval_confidence=0.025,
+            minimum_vector_retrieval_confidence=0.20,
+        )
+        metadata = [
+            {
+                "filename": "property.txt",
+                "chunk_index": 0,
+                "chunk_text": "Residual decision authority under incomplete contracts.",
+            },
+            {"filename": "overview.txt", "chunk_index": 1, "chunk_text": "General overview."},
+            {"filename": "schedule.txt", "chunk_index": 2, "chunk_text": "Class schedule."},
+            {"filename": "agency.txt", "chunk_index": 3, "chunk_text": "Agency theory."},
+        ]
+
+        with patch("src.retrieval.load_numpy_module", return_value=FakeNumpy()):
+            retrieved = get_context_from_query(
+                "Какво е това?\n\nEnglish retrieval query: agency theory",
+                index=FakeIndex(),
+                metadata=metadata,
+                settings=settings,
+                openai_module=FakeOpenAI(),
+            )
+
+        self.assertTrue(retrieved.answerable)
+        self.assertEqual(retrieved.sources[0].filename, "agency.txt")
+        self.assertIsNone(retrieved.sources[0].vector_rank)
+        self.assertEqual(retrieved.sources[1].filename, "property.txt")
+        self.assertEqual(retrieved.sources[1].vector_rank, 0)
+        self.assertLess(retrieved.confidence, settings.minimum_hybrid_retrieval_confidence)
+
     def test_english_hybrid_query_still_requires_hybrid_confidence(self):
         retrieval_module.clear_retrieval_cache()
         settings = CourseSettings(

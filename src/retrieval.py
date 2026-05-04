@@ -404,12 +404,15 @@ def retrieval_answerable(query, candidates, settings):
     if retrieval_confidence(candidates) >= retrieval_confidence_threshold(settings):
         return True
 
-    top = candidates[0].source
     if (
         settings.hybrid_retrieval
         and _uses_cyrillic(query)
-        and top.vector_rank is not None
-        and vector_confidence(top) > settings.minimum_vector_retrieval_confidence
+        and any(
+            candidate.source.vector_rank is not None
+            and vector_confidence(candidate.source)
+            > settings.minimum_vector_retrieval_confidence
+            for candidate in candidates
+        )
     ):
         return True
 
