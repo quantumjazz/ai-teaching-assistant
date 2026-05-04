@@ -4,13 +4,106 @@ function createBubble(role, text, sources) {
 
   const message = document.createElement('div');
   message.classList.add('message');
-  message.textContent = text;
+  setMessageContent(message, text, role);
 
   bubble.appendChild(message);
 
   appendSources(bubble, sources);
 
   return bubble;
+}
+
+function setMessageContent(message, text, role) {
+  message.textContent = '';
+  if (role !== 'ai') {
+    message.textContent = text;
+    return;
+  }
+
+  renderMarkdownMessage(message, text);
+}
+
+function renderMarkdownMessage(container, text) {
+  const lines = String(text || '').split(/\r?\n/);
+  let paragraphLines = [];
+  let currentList = null;
+  let lastListItem = null;
+
+  function flushParagraph() {
+    if (paragraphLines.length === 0) {
+      return;
+    }
+    const paragraph = document.createElement('p');
+    appendInlineMarkdown(paragraph, paragraphLines.join(' '));
+    container.appendChild(paragraph);
+    paragraphLines = [];
+  }
+
+  function appendListItem(rawLine) {
+    const match = rawLine.match(/^(\s*)[-*]\s+(.*)$/);
+    const indent = match ? match[1].length : 0;
+    const textContent = match ? match[2] : rawLine;
+
+    if (!currentList || indent === 0) {
+      currentList = document.createElement('ul');
+      container.appendChild(currentList);
+      lastListItem = null;
+    }
+
+    let targetList = currentList;
+    if (indent > 0 && lastListItem) {
+      targetList = lastListItem.querySelector(':scope > ul');
+      if (!targetList) {
+        targetList = document.createElement('ul');
+        lastListItem.appendChild(targetList);
+      }
+    }
+
+    const item = document.createElement('li');
+    appendInlineMarkdown(item, textContent);
+    targetList.appendChild(item);
+    if (indent === 0) {
+      lastListItem = item;
+    }
+  }
+
+  lines.forEach(function(line) {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      flushParagraph();
+      currentList = null;
+      lastListItem = null;
+      return;
+    }
+
+    if (/^\s*[-*]\s+/.test(line)) {
+      flushParagraph();
+      appendListItem(line);
+      return;
+    }
+
+    currentList = null;
+    lastListItem = null;
+    paragraphLines.push(trimmed);
+  });
+
+  flushParagraph();
+}
+
+function appendInlineMarkdown(parent, text) {
+  const segments = String(text || '').split(/(\*\*[^*]+\*\*)/g);
+  segments.forEach(function(segment) {
+    if (!segment) {
+      return;
+    }
+    if (segment.startsWith('**') && segment.endsWith('**') && segment.length > 4) {
+      const strong = document.createElement('strong');
+      strong.textContent = segment.slice(2, -2);
+      parent.appendChild(strong);
+      return;
+    }
+    parent.appendChild(document.createTextNode(segment));
+  });
 }
 
 function formatSource(source) {
@@ -84,14 +177,14 @@ document.getElementById('chat-form').addEventListener('submit', async function(e
     });
     const data = await res.json();
     if (!res.ok || data.error) {
-      aiMessage.textContent = 'Error: ' + (data.error || 'Request failed.');
+      setMessageContent(aiMessage, 'Error: ' + (data.error || 'Request failed.'), 'ai');
     } else {
-      aiMessage.textContent = data.response;
+      setMessageContent(aiMessage, data.response, 'ai');
       appendSources(aiBubble, data.sources);
       updateSessionStatus(data.turn_count);
     }
   } catch (error) {
-    aiMessage.textContent = 'Error: ' + error;
+    setMessageContent(aiMessage, 'Error: ' + error, 'ai');
   } finally {
     submitButton.disabled = false;
     queryInput.focus();

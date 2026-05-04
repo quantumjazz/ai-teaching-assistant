@@ -118,6 +118,23 @@ h1 {
   white-space: pre-wrap;
 }
 
+.chat-bubble .message p {
+  margin-bottom: 0.75em;
+}
+
+.chat-bubble .message p:last-child {
+  margin-bottom: 0;
+}
+
+.chat-bubble .message ul {
+  margin: 0.35em 0 0.75em 1.2em;
+  padding-left: 1em;
+}
+
+.chat-bubble .message li {
+  margin-bottom: 0.25em;
+}
+
 .chat-bubble.ai .message {
   background-color: #ececec;
 }

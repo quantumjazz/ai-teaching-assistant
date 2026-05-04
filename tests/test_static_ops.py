@@ -12,6 +12,10 @@ class StaticAndOpsTests(unittest.TestCase):
         )
 
         self.assertIn("textContent", script)
+        self.assertIn("renderMarkdownMessage", script)
+        self.assertIn("appendInlineMarkdown", script)
+        self.assertIn("document.createElement('strong')", script)
+        self.assertIn("document.createElement('ul')", script)
         self.assertNotIn("innerHTML", script)
 
     def test_chat_form_documents_enter_shortcut_and_scopes_submit_width(self):
