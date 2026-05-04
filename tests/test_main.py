@@ -277,9 +277,79 @@ class MainServiceTests(unittest.TestCase):
         self.assertIn("I don't know", result.response)
         self.assertEqual(len(fake_openai.chat.completions.calls), 1)
 
+    def test_bulgarian_question_adds_english_retrieval_query(self):
+        fake_index = FakeIndex()
+        fake_openai = FakeOpenAI(
+            [
+                "No",
+                "residual rights of control",
+                "Остатъчните права на контрол са правата за решения.",
+            ]
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            settings_path = root / "settings.txt"
+            data_dir = root / "data"
+            data_dir.mkdir()
+            settings_path.write_text(
+                "embedding_method=openai\n"
+                "openai_embedding_model=test-embedding\n"
+                "chat_model=test-chat\n"
+                "minimum_hybrid_retrieval_confidence=0.025\n",
+                encoding="utf-8",
+            )
+            (data_dir / "faiss_index.bin").write_text("fake", encoding="utf-8")
+            (data_dir / "faiss_metadata.json").write_text(
+                json.dumps(
+                    [
+                        {
+                            "filename": "overview.txt",
+                            "chunk_index": 0,
+                            "chunk_text": "General ownership chapter.",
+                        },
+                        {
+                            "filename": "property.txt",
+                            "chunk_index": 1,
+                            "chunk_text": (
+                                "Residual rights of control assign decision "
+                                "authority when contracts are incomplete."
+                            ),
+                        },
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}), patch(
+                "src.retrieval.load_numpy_module", return_value=FakeNumpy()
+            ):
+                result = answer_query_with_sources(
+                    'Какво са "остатъчни права на собственост"?',
+                    settings_path=settings_path,
+                    data_dir=data_dir,
+                    openai_module=fake_openai,
+                    faiss_module=FakeFaiss(fake_index),
+                    verify=False,
+                )
+
+        embedded_query = fake_openai.embeddings.calls[0]["input"][0]
+        self.assertIn("Какво са", embedded_query)
+        self.assertIn("residual rights of control", embedded_query)
+        answer_messages = fake_openai.chat.completions.calls[2]["messages"]
+        self.assertEqual(
+            answer_messages[1]["content"],
+            'Какво са "остатъчни права на собственост"?',
+        )
+        self.assertEqual(result.sources[0].filename, "property.txt")
+        self.assertEqual(
+            result.response,
+            "Остатъчните права на контрол са правата за решения.",
+        )
+
     def test_answer_query_returns_bulgarian_no_answer_for_bulgarian_input(self):
         fake_index = FakeIndex()
-        fake_openai = FakeOpenAI(["No"])
+        fake_openai = FakeOpenAI(["No", "What is evaluated?"])
 
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -312,7 +382,7 @@ class MainServiceTests(unittest.TestCase):
                 )
 
         self.assertIn("Не знам", result.response)
-        self.assertEqual(len(fake_openai.chat.completions.calls), 1)
+        self.assertEqual(len(fake_openai.chat.completions.calls), 2)
 
     def test_build_messages_omits_empty_context_block(self):
         messages = build_messages(

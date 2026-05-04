@@ -54,3 +54,24 @@ def check_syllabus(question, settings, openai_module=None):
         temperature=0.0,
     ).lower()
     return result.startswith("y")
+
+
+def translate_retrieval_query(question, settings, openai_module=None):
+    prompt = [
+        {
+            "role": "system",
+            "content": (
+                "Convert the student's course question into one concise English "
+                "retrieval search query. Preserve technical terms and named "
+                "concepts. Do not answer the question. Return only the query."
+            ),
+        },
+        {"role": "user", "content": question},
+    ]
+    return chat_completion(
+        prompt,
+        settings=settings,
+        openai_module=openai_module,
+        max_tokens=80,
+        temperature=0.0,
+    )

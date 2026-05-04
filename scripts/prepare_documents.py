@@ -451,7 +451,7 @@ def write_chunks_csv(chunks, output_csv_path):
 def main():
     load_dotenv_if_available()
     paths = runtime_paths()
-    load_dotenv_if_available(paths.env_path)
+    load_dotenv_if_available(paths.env_path, override=True)
     documents_dir = str(paths.documents_dir)
     output_csv_path = str(paths.data_dir / "chopped_text.csv")
 

@@ -23,10 +23,10 @@ def bootstrap_index(project_root=None, env=None, runner=subprocess.run):
     explicit_project_root = project_root is not None
     paths = runtime_paths(project_root, env=env)
     if env is None:
-        load_dotenv_if_available(paths.env_path)
+        load_dotenv_if_available(paths.env_path, override=True)
         env = os.environ
         paths = runtime_paths(project_root, env=env)
-        load_dotenv_if_available(paths.env_path)
+        load_dotenv_if_available(paths.env_path, override=True)
         env = os.environ
 
     if not _env_flag(env, "AUTO_INDEX_ON_STARTUP", True):

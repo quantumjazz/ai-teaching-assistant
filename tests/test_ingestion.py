@@ -307,6 +307,28 @@ class IngestionTests(unittest.TestCase):
         self.assertEqual(embeddings, [[1.0]])
         sleep.assert_called_once_with(1)
 
+    def test_embed_with_openai_can_throttle_between_batches(self):
+        fake_openai = SimpleNamespace()
+        fake_openai.embeddings = SimpleNamespace()
+
+        def create(model, input):
+            return SimpleNamespace(data=[SimpleNamespace(embedding=[1.0]) for _ in input])
+
+        fake_openai.embeddings.create = create
+
+        with patch("scripts.embed_documents.time.sleep") as sleep:
+            embeddings = embed_documents.embed_with_openai(
+                ["one", "two", "three"],
+                model="test-embedding",
+                max_tokens_per_batch=1,
+                openai_module=fake_openai,
+                sleep_seconds=2,
+            )
+
+        self.assertEqual(embeddings, [[1.0], [1.0], [1.0]])
+        self.assertEqual(sleep.call_count, 2)
+        sleep.assert_called_with(2)
+
     def test_build_faiss_index_copies_chunk_metadata(self):
         embedded = [
             {

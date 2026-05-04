@@ -41,7 +41,7 @@ def main():
 
     try:
         load_dotenv_if_available()
-        load_dotenv_if_available(runtime_paths().env_path)
+        load_dotenv_if_available(runtime_paths().env_path, override=True)
         summary = evaluate_cases(args.cases)
     except Exception as exc:
         print(f"Error: {exc}", file=sys.stderr)

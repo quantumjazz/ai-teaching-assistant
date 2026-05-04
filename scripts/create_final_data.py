@@ -232,7 +232,7 @@ def write_index_report(report_path, report):
 def main():
     load_dotenv_if_available()
     paths = runtime_paths()
-    load_dotenv_if_available(paths.env_path)
+    load_dotenv_if_available(paths.env_path, override=True)
     data_dir = str(paths.data_dir)
     settings = read_settings(paths.settings_path)
     embedded_data_path = str(paths.data_dir / "embedded_data.pkl")

@@ -3,13 +3,19 @@ from typing import List
 
 from .clients import configure_openai
 from .errors import UserInputError
-from .llm import chat_completion, check_syllabus, verify_answer
+from .llm import (
+    chat_completion,
+    check_syllabus,
+    translate_retrieval_query,
+    verify_answer,
+)
 from .prompts import (
     answer_check_disabled_message,
     answer_check_missing_answer_message,
     build_messages,
     language_policy_instruction,
     no_answer_message,
+    uses_cyrillic,
 )
 from .retrieval import Source, get_context_from_query, load_faiss_resources
 from .settings import load_course_settings, runtime_paths
@@ -98,8 +104,14 @@ def answer_query_with_sources(
             f"New question: {original_question}"
         )
 
-    retrieved = get_context_from_query(
+    retrieval_query = _retrieval_query_for_question(
         original_question,
+        settings=settings,
+        openai_module=openai_module,
+    )
+
+    retrieved = get_context_from_query(
+        retrieval_query,
         index=index,
         metadata=metadata,
         settings=settings,
@@ -130,7 +142,7 @@ def answer_query_with_sources(
         verified = verify_answer(original_question, reply, settings, openai_module)
         if not verified:
             alt_retrieved = get_context_from_query(
-                original_question,
+                retrieval_query,
                 index=index,
                 metadata=metadata,
                 settings=_with_minimum_chunks(settings, 5),
@@ -200,3 +212,18 @@ def _answer_check(user_answer, settings_path=None, openai_module=None, conversat
 
 def _with_minimum_chunks(settings, minimum_chunks):
     return replace(settings, num_chunks=max(settings.num_chunks, minimum_chunks))
+
+
+def _retrieval_query_for_question(question, settings, openai_module):
+    if not uses_cyrillic(question):
+        return question
+
+    translated = translate_retrieval_query(question, settings, openai_module).strip()
+    if not translated or translated == question:
+        return question
+
+    return (
+        f"{question}\n\n"
+        "English retrieval query for matching English course materials:\n"
+        f"{translated}"
+    )

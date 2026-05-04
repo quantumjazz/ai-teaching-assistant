@@ -191,30 +191,29 @@ def embed_with_openai(
     embeddings = []
     batch = []
     current_tokens = 0
+
+    def embed_current_batch(has_more_batches):
+        batch_embeddings = _embed_batch_with_rate_limit_retry(
+            openai_module,
+            model,
+            batch,
+            sleep_seconds,
+        )
+        if has_more_batches and sleep_seconds > 0:
+            print(f"Waiting {sleep_seconds} seconds before the next embedding batch...")
+            time.sleep(sleep_seconds)
+        return batch_embeddings
+
     for text in texts:
         tokens = count_tokens(text)
         if batch and current_tokens + tokens > max_tokens_per_batch:
-            embeddings.extend(
-                _embed_batch_with_rate_limit_retry(
-                    openai_module,
-                    model,
-                    batch,
-                    sleep_seconds,
-                )
-            )
+            embeddings.extend(embed_current_batch(has_more_batches=True))
             batch = []
             current_tokens = 0
         batch.append(text)
         current_tokens += tokens
     if batch:
-        embeddings.extend(
-            _embed_batch_with_rate_limit_retry(
-                openai_module,
-                model,
-                batch,
-                sleep_seconds,
-            )
-        )
+        embeddings.extend(embed_current_batch(has_more_batches=False))
     return embeddings
 
 
@@ -277,7 +276,7 @@ def read_nonnegative_int(raw_value: str, default: int) -> int:
 def main():
     load_dotenv_if_available()
     paths = runtime_paths()
-    load_dotenv_if_available(paths.env_path)
+    load_dotenv_if_available(paths.env_path, override=True)
     data_dir = str(paths.data_dir)
     settings = read_settings(paths.settings_path)
     chopped_csv_path = str(paths.data_dir / "chopped_text.csv")

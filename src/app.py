@@ -9,7 +9,7 @@ from .env_utils import env_flag, is_configured_env_value, load_dotenv_if_availab
 load_dotenv_if_available()
 from .settings import runtime_paths
 
-load_dotenv_if_available(runtime_paths().env_path)
+load_dotenv_if_available(runtime_paths().env_path, override=True)
 
 from .health import get_health_report
 from .index_status import get_index_status
