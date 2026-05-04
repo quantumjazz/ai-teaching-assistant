@@ -5,9 +5,24 @@ def chat_completion(messages, settings: CourseSettings, openai_module=None, **kw
     response = openai_module.chat.completions.create(
         model=settings.chat_model,
         messages=messages,
-        **kwargs,
+        **_chat_completion_kwargs(settings.chat_model, kwargs),
     )
     return response.choices[0].message.content.strip()
+
+
+def _chat_completion_kwargs(model, kwargs):
+    kwargs = dict(kwargs)
+    if _uses_reasoning_chat_parameters(model):
+        if "max_tokens" in kwargs and "max_completion_tokens" not in kwargs:
+            kwargs["max_completion_tokens"] = kwargs.pop("max_tokens")
+        if kwargs.get("temperature") == 0.0:
+            kwargs.pop("temperature")
+    return kwargs
+
+
+def _uses_reasoning_chat_parameters(model):
+    model = (model or "").lower()
+    return model.startswith(("gpt-5", "o1", "o3", "o4"))
 
 
 def verify_answer(original_question, answer, settings, openai_module=None):
