@@ -396,6 +396,22 @@ class MainServiceTests(unittest.TestCase):
         self.assertNotIn("Context:", messages[0]["content"])
         self.assertIn("Match the language", messages[0]["content"])
 
+    def test_build_messages_uses_pedagogical_answer_structure(self):
+        messages = build_messages(
+            "normal",
+            original_question="What are residual rights?",
+            final_query="What are residual rights?",
+            context="Residual rights are decision rights not specified by contract.",
+            settings=CourseSettings(classname="Test Course"),
+        )
+
+        system_message = messages[0]["content"]
+        self.assertIn("Start with a direct definition", system_message)
+        self.assertIn("explain the intuition", system_message)
+        self.assertIn("small example or implication", system_message)
+        self.assertIn("short paragraphs or bullets", system_message)
+        self.assertIn("Context:", system_message)
+
     def test_verification_fallback_preserves_original_when_alt_retrieval_is_not_answerable(self):
         fake_openai = FakeOpenAI(["No", "Draft answer.", "No"])
         first_retrieval = RetrievedContext(
