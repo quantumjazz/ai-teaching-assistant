@@ -24,7 +24,8 @@ class StaticAndOpsTests(unittest.TestCase):
             encoding="utf-8"
         )
 
-        self.assertIn("Cmd/Ctrl+Enter", html)
+        self.assertIn("Enter to send", html)
+        self.assertIn("Shift+Enter", html)
         self.assertIn("min-height: 100dvh", css)
         self.assertIn("#submit-button", css)
         self.assertNotIn("height: 100vh", css)

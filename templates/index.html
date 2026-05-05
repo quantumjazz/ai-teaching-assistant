@@ -5,23 +5,65 @@
   <title>AI Teaching Assistant Chat</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
-<body>
-  <div class="container">
-    <div class="app-header">
-      <h1>AI Teaching Assistant Chat</h1>
-      <div class="header-actions">
-        <span id="session-status">New chat</span>
-        <button id="new-chat-button" type="button">New chat</button>
+<body class="chat-page">
+  <div class="chat-shell">
+    <aside class="chat-sidebar" aria-label="Chat navigation">
+      <div class="brand-block">
+        <span class="brand-mark" aria-hidden="true">AI</span>
+        <div>
+          <h1>Teaching Assistant</h1>
+          <p id="session-status">New chat</p>
+        </div>
+      </div>
+      <button id="new-chat-button" class="new-chat-button" type="button">New chat</button>
+      <nav class="chat-nav" aria-label="Secondary navigation">
         <a href="{{ url_for('documents_page') }}">Documents</a>
         <a href="{{ url_for('setup') }}">Setup</a>
-      </div>
-    </div>
-    <div id="response"></div>
-    <form id="chat-form" action="javascript:void(0)">
-      <label for="query" style="display: none;">Enter your query:</label>
-      <textarea id="query" rows="5" placeholder="Type your question here... Cmd/Ctrl+Enter to send."></textarea>
-      <button id="submit-button" type="submit">Submit</button>
-    </form>
+      </nav>
+    </aside>
+
+    <main class="chat-main">
+      <header class="mobile-chat-header">
+        <div class="brand-block">
+          <span class="brand-mark" aria-hidden="true">AI</span>
+          <div>
+            <h1>Teaching Assistant</h1>
+            <p id="mobile-session-status">New chat</p>
+          </div>
+        </div>
+        <button id="mobile-new-chat-button" class="new-chat-button" type="button">New chat</button>
+      </header>
+      <nav class="mobile-chat-nav" aria-label="Secondary navigation">
+        <a href="{{ url_for('documents_page') }}">Documents</a>
+        <a href="{{ url_for('setup') }}">Setup</a>
+      </nav>
+
+      <section id="response" class="conversation" aria-live="polite">
+        <div id="empty-state" class="empty-state">
+          <div class="empty-brand-mark" aria-hidden="true">AI</div>
+          <h2>What should we work on?</h2>
+          <div class="example-actions" aria-label="Example prompts">
+            <button type="button" class="example-action" data-mode="ask" data-prompt="Explain a core concept from the course.">Explain a concept</button>
+            <button type="button" class="example-action" data-mode="quiz" data-prompt="a topic from the current course materials">Create a quiz</button>
+            <button type="button" class="example-action" data-mode="check" data-prompt="Paste your answer here.">Check my answer</button>
+          </div>
+        </div>
+      </section>
+
+      <form id="chat-form" class="chat-composer" action="javascript:void(0)">
+        <div class="mode-tabs" role="tablist" aria-label="Message mode">
+          <button type="button" class="mode-tab active" data-mode="ask" aria-pressed="true">Ask</button>
+          <button type="button" class="mode-tab" data-mode="quiz" aria-pressed="false">Quiz</button>
+          <button type="button" class="mode-tab" data-mode="check" aria-pressed="false">Check answer</button>
+        </div>
+        <div class="composer-box">
+          <label for="query" class="sr-only">Message</label>
+          <textarea id="query" rows="1" placeholder="Message the teaching assistant..."></textarea>
+          <button id="submit-button" type="submit" aria-label="Send message">Send</button>
+        </div>
+        <p class="composer-hint">Enter to send, Shift+Enter for a new line</p>
+      </form>
+    </main>
   </div>
 
   <script src="{{ url_for('static', filename='js/queryProcess.js') }}"></script>

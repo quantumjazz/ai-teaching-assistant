@@ -1,6 +1,41 @@
-function createBubble(role, text, sources) {
+const MODE_CONFIG = {
+  ask: {
+    label: 'Ask',
+    prefix: '',
+    placeholder: 'Message the teaching assistant...'
+  },
+  quiz: {
+    label: 'Quiz',
+    prefix: 'm:',
+    placeholder: 'Topic for a multiple-choice question...'
+  },
+  check: {
+    label: 'Check answer',
+    prefix: 'a:',
+    placeholder: 'Paste your answer to the latest course question...'
+  }
+};
+
+let activeMode = 'ask';
+
+function createBubble(role, text, sources, options) {
   const bubble = document.createElement('div');
   bubble.classList.add('chat-bubble', role);
+
+  const opts = options || {};
+  if (opts.loading) {
+    bubble.classList.add('loading');
+  }
+  if (opts.error) {
+    bubble.classList.add('error');
+  }
+
+  if (opts.modeLabel) {
+    const modeLabel = document.createElement('div');
+    modeLabel.classList.add('message-mode');
+    modeLabel.textContent = opts.modeLabel;
+    bubble.appendChild(modeLabel);
+  }
 
   const message = document.createElement('div');
   message.classList.add('message');
@@ -106,20 +141,31 @@ function appendInlineMarkdown(parent, text) {
   });
 }
 
+function sourceLabel(source) {
+  return source.document_title || source.filename || 'Unknown source';
+}
+
 function formatSource(source) {
   const filename = source.filename || 'Unknown source';
-  const chunk = Number.isInteger(source.chunk_index) ? source.chunk_index : '?';
-  const details = [`chunk ${chunk}`];
+  const details = [];
   if (Number.isInteger(source.page_number)) {
     details.push(`page ${source.page_number}`);
   }
   if (source.section_title) {
     details.push(source.section_title);
   }
-  return `${filename} (${details.join(', ')})`;
+  if (Number.isInteger(source.chunk_index)) {
+    details.push(`chunk ${source.chunk_index}`);
+  }
+  return details.length ? `${filename} (${details.join(', ')})` : filename;
 }
 
 function appendSources(bubble, sources) {
+  const existingSources = bubble.querySelector(':scope > .sources');
+  if (existingSources) {
+    existingSources.remove();
+  }
+
   if (!Array.isArray(sources) || sources.length === 0) {
     return;
   }
@@ -128,10 +174,26 @@ function appendSources(bubble, sources) {
   sourceDetails.classList.add('sources');
 
   const summary = document.createElement('summary');
-  summary.textContent = 'Sources';
+  summary.addEventListener('click', function(event) {
+    event.preventDefault();
+    sourceDetails.open = !sourceDetails.open;
+  });
+  const count = document.createElement('span');
+  count.classList.add('source-count');
+  count.textContent = `${sources.length} source${sources.length === 1 ? '' : 's'}`;
+  summary.appendChild(count);
+
+  uniqueSourceLabels(sources).slice(0, 3).forEach(function(label) {
+    const chip = document.createElement('span');
+    chip.classList.add('source-chip');
+    chip.textContent = label;
+    summary.appendChild(chip);
+  });
+
   sourceDetails.appendChild(summary);
 
   const list = document.createElement('ul');
+  list.classList.add('source-list');
   sources.forEach(function(source) {
     const item = document.createElement('li');
     const title = document.createElement('strong');
@@ -150,33 +212,109 @@ function appendSources(bubble, sources) {
   bubble.appendChild(sourceDetails);
 }
 
+function uniqueSourceLabels(sources) {
+  const labels = [];
+  sources.forEach(function(source) {
+    const label = sourceLabel(source);
+    if (!labels.includes(label)) {
+      labels.push(label);
+    }
+  });
+  return labels;
+}
+
+function apiQueryFor(displayQuery) {
+  const config = MODE_CONFIG[activeMode] || MODE_CONFIG.ask;
+  if (!config.prefix) {
+    return displayQuery;
+  }
+  return `${config.prefix} ${displayQuery}`;
+}
+
+function displayModeLabel() {
+  if (activeMode === 'ask') {
+    return '';
+  }
+  return MODE_CONFIG[activeMode].label;
+}
+
+function setMode(mode) {
+  if (!MODE_CONFIG[mode]) {
+    return;
+  }
+  activeMode = mode;
+  const queryInput = document.getElementById('query');
+  queryInput.placeholder = MODE_CONFIG[mode].placeholder;
+
+  document.querySelectorAll('.mode-tab').forEach(function(tab) {
+    const isActive = tab.dataset.mode === mode;
+    tab.classList.toggle('active', isActive);
+    tab.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+  });
+}
+
+function updateEmptyState() {
+  const emptyState = document.getElementById('empty-state');
+  const responseDiv = document.getElementById('response');
+  if (!emptyState || !responseDiv) {
+    return;
+  }
+  const hasMessages = responseDiv.querySelector('.chat-bubble') !== null;
+  emptyState.classList.toggle('hidden', hasMessages);
+}
+
+function scrollConversationToBottom() {
+  const responseDiv = document.getElementById('response');
+  responseDiv.scrollTop = responseDiv.scrollHeight;
+}
+
+function setBusy(isBusy) {
+  const submitButton = document.getElementById('submit-button');
+  const queryInput = document.getElementById('query');
+  submitButton.disabled = isBusy;
+  queryInput.disabled = isBusy;
+  submitButton.textContent = isBusy ? 'Wait' : 'Send';
+}
+
+function resizeComposer() {
+  const queryInput = document.getElementById('query');
+  queryInput.style.height = 'auto';
+  queryInput.style.height = `${queryInput.scrollHeight}px`;
+}
+
 document.getElementById('chat-form').addEventListener('submit', async function(event) {
   event.preventDefault();
 
   const queryInput = document.getElementById('query');
-  const submitButton = document.getElementById('submit-button');
-  const query = queryInput.value.trim();
-  if (!query) {
+  const displayQuery = queryInput.value.trim();
+  if (!displayQuery) {
     return;
   }
 
-  submitButton.disabled = true;
+  setBusy(true);
   const responseDiv = document.getElementById('response');
-  responseDiv.appendChild(createBubble('user', query));
-  const aiBubble = createBubble('ai', 'Loading...');
+  responseDiv.appendChild(
+    createBubble('user', displayQuery, [], { modeLabel: displayModeLabel() })
+  );
+  updateEmptyState();
+
+  const aiBubble = createBubble('ai', 'Thinking...', [], { loading: true });
   const aiMessage = aiBubble.querySelector('.message');
   responseDiv.appendChild(aiBubble);
-  responseDiv.scrollTop = responseDiv.scrollHeight;
+  scrollConversationToBottom();
   queryInput.value = '';
+  resizeComposer();
 
   try {
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: query })
+      body: JSON.stringify({ query: apiQueryFor(displayQuery) })
     });
     const data = await res.json();
+    aiBubble.classList.remove('loading');
     if (!res.ok || data.error) {
+      aiBubble.classList.add('error');
       setMessageContent(aiMessage, 'Error: ' + (data.error || 'Request failed.'), 'ai');
     } else {
       setMessageContent(aiMessage, data.response, 'ai');
@@ -184,39 +322,77 @@ document.getElementById('chat-form').addEventListener('submit', async function(e
       updateSessionStatus(data.turn_count);
     }
   } catch (error) {
+    aiBubble.classList.remove('loading');
+    aiBubble.classList.add('error');
     setMessageContent(aiMessage, 'Error: ' + error, 'ai');
   } finally {
-    submitButton.disabled = false;
+    setBusy(false);
     queryInput.focus();
   }
-  responseDiv.scrollTop = responseDiv.scrollHeight;
+  scrollConversationToBottom();
 });
 
 document.getElementById('query').addEventListener('keydown', function(event) {
-  if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+  if (event.key !== 'Enter') {
+    return;
+  }
+  if (!event.shiftKey || event.metaKey || event.ctrlKey) {
     event.preventDefault();
     document.getElementById('chat-form').requestSubmit();
   }
 });
 
-document.getElementById('new-chat-button').addEventListener('click', async function() {
+document.getElementById('query').addEventListener('input', resizeComposer);
+
+document.querySelectorAll('.mode-tab').forEach(function(tab) {
+  tab.addEventListener('click', function() {
+    setMode(tab.dataset.mode);
+    document.getElementById('query').focus();
+  });
+});
+
+document.querySelectorAll('.example-action').forEach(function(button) {
+  button.addEventListener('click', function() {
+    const queryInput = document.getElementById('query');
+    setMode(button.dataset.mode || 'ask');
+    queryInput.value = button.dataset.prompt || '';
+    resizeComposer();
+    queryInput.focus();
+  });
+});
+
+document.querySelectorAll('#new-chat-button, #mobile-new-chat-button').forEach(function(button) {
+  button.addEventListener('click', clearChatSession);
+});
+
+async function clearChatSession() {
   const responseDiv = document.getElementById('response');
   try {
     await fetch('/api/chat/session', { method: 'DELETE' });
   } catch (error) {
-    responseDiv.appendChild(createBubble('ai', 'Error clearing chat: ' + error));
+    responseDiv.appendChild(createBubble('ai', 'Error clearing chat: ' + error, [], { error: true }));
+    updateEmptyState();
     return;
   }
-  responseDiv.textContent = '';
+
+  responseDiv.querySelectorAll('.chat-bubble').forEach(function(bubble) {
+    bubble.remove();
+  });
   updateSessionStatus(0);
+  updateEmptyState();
+  setMode('ask');
   document.getElementById('query').focus();
-});
+}
 
 function updateSessionStatus(turnCount) {
-  const status = document.getElementById('session-status');
-  if (!turnCount) {
-    status.textContent = 'New chat';
-    return;
-  }
-  status.textContent = `${turnCount} turn${turnCount === 1 ? '' : 's'}`;
+  const label = !turnCount
+    ? 'New chat'
+    : `${turnCount} turn${turnCount === 1 ? '' : 's'}`;
+  document.querySelectorAll('#session-status, #mobile-session-status').forEach(function(status) {
+    status.textContent = label;
+  });
 }
+
+setMode('ask');
+resizeComposer();
+updateEmptyState();
