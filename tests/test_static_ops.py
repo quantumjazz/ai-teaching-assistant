@@ -26,6 +26,10 @@ class StaticAndOpsTests(unittest.TestCase):
 
         self.assertIn("Enter to send", html)
         self.assertIn("Shift+Enter", html)
+        self.assertIn("static_asset_version", html)
+        self.assertIn("chat-header", html)
+        self.assertNotIn("mobile-chat-header", html)
+        self.assertNotIn("chat-sidebar", html)
         self.assertIn("min-height: 100dvh", css)
         self.assertIn("#submit-button", css)
         self.assertNotIn("height: 100vh", css)

@@ -28,6 +28,27 @@ app.config.update(
     SESSION_COOKIE_SECURE=env_flag("SESSION_COOKIE_SECURE", False),
 )
 
+STATIC_VERSION_PATHS = (
+    os.path.join(static_dir, "css", "styles.css"),
+    os.path.join(static_dir, "js", "queryProcess.js"),
+)
+
+
+def static_asset_version():
+    mtimes = []
+    for path in STATIC_VERSION_PATHS:
+        try:
+            mtimes.append(os.path.getmtime(path))
+        except OSError:
+            continue
+    return str(int(max(mtimes))) if mtimes else "1"
+
+
+@app.context_processor
+def inject_static_asset_version():
+    return {"static_asset_version": static_asset_version()}
+
+
 @app.route('/')
 def index():
     return render_template('index.html')

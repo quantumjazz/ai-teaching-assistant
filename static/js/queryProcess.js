@@ -361,7 +361,7 @@ document.querySelectorAll('.example-action').forEach(function(button) {
   });
 });
 
-document.querySelectorAll('#new-chat-button, #mobile-new-chat-button').forEach(function(button) {
+document.querySelectorAll('#new-chat-button').forEach(function(button) {
   button.addEventListener('click', clearChatSession);
 });
 
@@ -388,7 +388,7 @@ function updateSessionStatus(turnCount) {
   const label = !turnCount
     ? 'New chat'
     : `${turnCount} turn${turnCount === 1 ? '' : 's'}`;
-  document.querySelectorAll('#session-status, #mobile-session-status').forEach(function(status) {
+  document.querySelectorAll('#session-status').forEach(function(status) {
     status.textContent = label;
   });
 }

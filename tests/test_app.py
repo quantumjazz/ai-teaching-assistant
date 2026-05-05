@@ -41,6 +41,8 @@ class AppTests(unittest.TestCase):
         self.assertIn(b"/setup", response.data)
         self.assertIn(b"Documents", response.data)
         self.assertIn(b"/documents", response.data)
+        self.assertIn(b"styles.css?v=", response.data)
+        self.assertIn(b"queryProcess.js?v=", response.data)
 
     def test_chat_returns_answer_from_service(self):
         result = AssistantResponse(

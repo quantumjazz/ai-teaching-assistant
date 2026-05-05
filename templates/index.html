@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>AI Teaching Assistant Chat</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css', v=static_asset_version) }}">
 </head>
 <body class="chat-page">
   <div class="chat-shell">
-    <aside class="chat-sidebar" aria-label="Chat navigation">
+    <header class="chat-header">
       <div class="brand-block">
         <span class="brand-mark" aria-hidden="true">AI</span>
         <div>
@@ -15,29 +15,16 @@
           <p id="session-status">New chat</p>
         </div>
       </div>
-      <button id="new-chat-button" class="new-chat-button" type="button">New chat</button>
-      <nav class="chat-nav" aria-label="Secondary navigation">
-        <a href="{{ url_for('documents_page') }}">Documents</a>
-        <a href="{{ url_for('setup') }}">Setup</a>
-      </nav>
-    </aside>
+      <div class="header-actions">
+        <button id="new-chat-button" class="new-chat-button" type="button">New chat</button>
+        <nav class="chat-nav" aria-label="Secondary navigation">
+          <a href="{{ url_for('documents_page') }}">Documents</a>
+          <a href="{{ url_for('setup') }}">Setup</a>
+        </nav>
+      </div>
+    </header>
 
     <main class="chat-main">
-      <header class="mobile-chat-header">
-        <div class="brand-block">
-          <span class="brand-mark" aria-hidden="true">AI</span>
-          <div>
-            <h1>Teaching Assistant</h1>
-            <p id="mobile-session-status">New chat</p>
-          </div>
-        </div>
-        <button id="mobile-new-chat-button" class="new-chat-button" type="button">New chat</button>
-      </header>
-      <nav class="mobile-chat-nav" aria-label="Secondary navigation">
-        <a href="{{ url_for('documents_page') }}">Documents</a>
-        <a href="{{ url_for('setup') }}">Setup</a>
-      </nav>
-
       <section id="response" class="conversation" aria-live="polite">
         <div id="empty-state" class="empty-state">
           <div class="empty-brand-mark" aria-hidden="true">AI</div>
@@ -66,6 +53,6 @@
     </main>
   </div>
 
-  <script src="{{ url_for('static', filename='js/queryProcess.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/queryProcess.js', v=static_asset_version) }}"></script>
 </body>
 </html>
