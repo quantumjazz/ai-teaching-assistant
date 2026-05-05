@@ -36,6 +36,8 @@ class StaticAndOpsTests(unittest.TestCase):
         self.assertNotIn("chat-sidebar", html)
         self.assertIn("min-height: 100dvh", css)
         self.assertIn(".empty-state-copy", css)
+        self.assertIn("max-height: min(42vh, 360px)", css)
+        self.assertIn("overscroll-behavior: contain", css)
         self.assertIn("#submit-button", css)
         self.assertNotIn("height: 100vh", css)
 

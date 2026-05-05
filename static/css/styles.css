@@ -359,6 +359,10 @@ a {
   margin-top: 12px;
   padding-left: 0;
   list-style: none;
+  max-height: min(42vh, 360px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 8px;
 }
 
 .source-list li {
