@@ -213,11 +213,18 @@ a {
   letter-spacing: 0;
 }
 
+.empty-state-copy {
+  max-width: 560px;
+  color: var(--muted);
+  font-size: 0.98rem;
+  line-height: 1.55;
+}
+
 .example-actions {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
-  width: min(100%, 680px);
+  width: min(100%, 820px);
 }
 
 .example-action {

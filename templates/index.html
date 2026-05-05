@@ -28,11 +28,16 @@
       <section id="response" class="conversation" aria-live="polite">
         <div id="empty-state" class="empty-state">
           <div class="empty-brand-mark" aria-hidden="true">AI</div>
-          <h2>What should we work on?</h2>
+          <h2>Ask about the indexed course materials</h2>
+          <p class="empty-state-copy">
+            Use a specific concept, author, theory, or passage. Broad prompts like
+            “explain a core concept” are too vague for retrieval.
+          </p>
           <div class="example-actions" aria-label="Example prompts">
-            <button type="button" class="example-action" data-mode="ask" data-prompt="Explain a core concept from the course.">Explain a concept</button>
-            <button type="button" class="example-action" data-mode="quiz" data-prompt="a topic from the current course materials">Create a quiz</button>
-            <button type="button" class="example-action" data-mode="check" data-prompt="Paste your answer here.">Check my answer</button>
+            <button type="button" class="example-action" data-mode="ask" data-prompt='Какво са "остатъчни права на собственост"?'>Residual rights</button>
+            <button type="button" class="example-action" data-mode="ask" data-prompt="Какво е принципал-агентски проблем?">Principal-agent</button>
+            <button type="button" class="example-action" data-mode="ask" data-prompt="Какво са транзакционни разходи?">Transaction costs</button>
+            <button type="button" class="example-action" data-mode="quiz" data-prompt="остатъчни права на собственост">Quiz this topic</button>
           </div>
         </div>
       </section>
@@ -45,7 +50,7 @@
         </div>
         <div class="composer-box">
           <label for="query" class="sr-only">Message</label>
-          <textarea id="query" rows="1" placeholder="Message the teaching assistant..."></textarea>
+          <textarea id="query" rows="1" placeholder="Ask about a specific concept, author, model, or passage..."></textarea>
           <button id="submit-button" type="submit" aria-label="Send message">Send</button>
         </div>
         <p class="composer-hint">Enter to send, Shift+Enter for a new line</p>

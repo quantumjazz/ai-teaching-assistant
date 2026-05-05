@@ -2,17 +2,17 @@ const MODE_CONFIG = {
   ask: {
     label: 'Ask',
     prefix: '',
-    placeholder: 'Message the teaching assistant...'
+    placeholder: 'Ask about a specific concept, author, model, or passage...'
   },
   quiz: {
     label: 'Quiz',
     prefix: 'm:',
-    placeholder: 'Topic for a multiple-choice question...'
+    placeholder: 'Enter a specific topic for a multiple-choice question...'
   },
   check: {
     label: 'Check answer',
     prefix: 'a:',
-    placeholder: 'Paste your answer to the latest course question...'
+    placeholder: 'After a quiz question, paste your answer here...'
   }
 };
 
