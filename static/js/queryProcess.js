@@ -268,6 +268,12 @@ function scrollConversationToBottom() {
   responseDiv.scrollTop = responseDiv.scrollHeight;
 }
 
+function scrollBubbleIntoView(bubble) {
+  requestAnimationFrame(function() {
+    bubble.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  });
+}
+
 function setBusy(isBusy) {
   const submitButton = document.getElementById('submit-button');
   const queryInput = document.getElementById('query');
@@ -301,7 +307,7 @@ document.getElementById('chat-form').addEventListener('submit', async function(e
   const aiBubble = createBubble('ai', 'Thinking...', [], { loading: true });
   const aiMessage = aiBubble.querySelector('.message');
   responseDiv.appendChild(aiBubble);
-  scrollConversationToBottom();
+  scrollBubbleIntoView(aiBubble);
   queryInput.value = '';
   resizeComposer();
 
@@ -329,7 +335,7 @@ document.getElementById('chat-form').addEventListener('submit', async function(e
     setBusy(false);
     queryInput.focus();
   }
-  scrollConversationToBottom();
+  scrollBubbleIntoView(aiBubble);
 });
 
 document.getElementById('query').addEventListener('keydown', function(event) {

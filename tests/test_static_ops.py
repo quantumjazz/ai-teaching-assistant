@@ -16,6 +16,8 @@ class StaticAndOpsTests(unittest.TestCase):
         self.assertIn("appendInlineMarkdown", script)
         self.assertIn("document.createElement('strong')", script)
         self.assertIn("document.createElement('ul')", script)
+        self.assertIn("scrollBubbleIntoView", script)
+        self.assertIn("scrollIntoView({ block: 'start'", script)
         self.assertNotIn("innerHTML", script)
 
     def test_chat_form_documents_enter_shortcut_and_scopes_submit_width(self):
@@ -38,6 +40,7 @@ class StaticAndOpsTests(unittest.TestCase):
         self.assertIn("min-height: 100dvh", css)
         self.assertIn("height: 100dvh", css)
         self.assertIn("overscroll-behavior: contain", css)
+        self.assertIn("scroll-margin-top: 24px", css)
         self.assertIn(".empty-state-copy", css)
         self.assertIn("max-height: min(42vh, 360px)", css)
         self.assertIn("#submit-button", css)

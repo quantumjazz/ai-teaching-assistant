@@ -254,6 +254,7 @@ a {
   flex-direction: column;
   width: min(100%, 820px);
   margin: 0 auto 28px;
+  scroll-margin-top: 24px;
 }
 
 .chat-bubble.user {
