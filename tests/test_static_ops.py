@@ -18,6 +18,9 @@ class StaticAndOpsTests(unittest.TestCase):
         self.assertIn("document.createElement('ul')", script)
         self.assertIn("scrollBubbleIntoView", script)
         self.assertIn("scrollIntoView({ block: 'start'", script)
+        self.assertIn("cleanSourceTitle", script)
+        self.assertIn("titleCaseSource", script)
+        self.assertIn("replace(/[_]+/g, ' ')", script)
         self.assertNotIn("innerHTML", script)
 
     def test_chat_form_documents_enter_shortcut_and_scopes_submit_width(self):

@@ -142,11 +142,11 @@ function appendInlineMarkdown(parent, text) {
 }
 
 function sourceLabel(source) {
-  return source.document_title || source.filename || 'Unknown source';
+  return cleanSourceTitle(source.document_title || source.filename);
 }
 
 function formatSource(source) {
-  const filename = source.filename || 'Unknown source';
+  const title = sourceLabel(source);
   const details = [];
   if (Number.isInteger(source.page_number)) {
     details.push(`page ${source.page_number}`);
@@ -157,7 +157,36 @@ function formatSource(source) {
   if (Number.isInteger(source.chunk_index)) {
     details.push(`chunk ${source.chunk_index}`);
   }
-  return details.length ? `${filename} (${details.join(', ')})` : filename;
+  return details.length ? `${title} (${details.join(', ')})` : title;
+}
+
+function cleanSourceTitle(value) {
+  const raw = String(value || '').trim();
+  if (!raw) {
+    return 'Unknown source';
+  }
+
+  const filename = raw.split(/[\\/]/).pop();
+  const withoutExtension = filename.replace(/\.[A-Za-z0-9]{1,8}$/, '');
+  const cleaned = withoutExtension
+    .replace(/[_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return cleaned ? titleCaseSource(cleaned) : 'Unknown source';
+}
+
+function titleCaseSource(text) {
+  return text.split(' ').map(function(word, index) {
+    if (/^\d+$/.test(word) || /^[A-Z]{2,}$/.test(word)) {
+      return word;
+    }
+    const lower = word.toLowerCase();
+    if (index > 0 && ['and', 'or', 'of', 'for', 'the', 'in'].includes(lower)) {
+      return lower;
+    }
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
+  }).join(' ');
 }
 
 function appendSources(bubble, sources) {
